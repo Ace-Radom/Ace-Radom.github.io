@@ -2,7 +2,7 @@
 
 <html>
     <head>
-		<title>Renalog日志库简介及使用说明</title>
+		<title>Renalog日志库简介及使用说明 Ace_Radom's Blog</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="../assets/css/main.css" />
@@ -137,17 +137,75 @@
 					<header class="major">
 						<h3>3. renalog的基础使用</h3>
 					</header>
-					<p>renalog库被封装在命名空间rena下<br>
-					要实现基础的日志创建功能 应使用rena命名空间下的renalog类 比如:</p>
-					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
-						<ul style="list-style: none;">
-							<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&nbsp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">)</font><font color="000000">;</font></li>
-						</ul>
-					</font></div>
-					<p>这样会在程序内创建一个名为rl的对象 之后所有的日志创建 日志记录等等的功能皆需要在该对象下实现<br>
-					同时 也需要在创建renalog对象时使用类构析函数 指定日志的保存路径 (日志保存路径可为绝对路径也可为相对路径)<br>
-					在创建rl对象的同时 renalog会自动定位到给到的日志保存路径 并检查该路径是否存在<br>
-					若不存在 renalog会自动创建该路径 如果他有创建该路径的权限</p>
+					<p>renalog库内成员均被封装在命名空间rena下 使用时需注意命名空间引用</p>
+
+					<section>
+						<header>
+							<h4>3.1 初始化renalog类</h4>
+						</header>
+						<p>要实现基础的日志创建功能 应使用rena命名空间下的renalog类 比如:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&nbsp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">);</font></li>
+							</ul>
+						</font></div>
+						<p>这样会在程序内创建一个名为rl的对象 之后所有的日志创建 日志记录等等的功能皆需要在该对象下实现<br>
+						同时 也需要在创建renalog对象时使用类构析函数 指定日志的保存路径 (日志保存路径可为绝对路径也可为相对路径)<br>
+						在创建rl对象的同时 renalog会自动定位到给到的日志保存路径 并检查该路径是否存在<br>
+						若不存在 renalog会自动创建该路径 如果他有创建该路径的权限</p>
+					</section>
+
+					<section>
+						<header>
+							<h4>3.2 创建日志文件</h4>
+						</header>
+						<p>renalog需要一个日志标头以创建日志文件 比如:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">open</font><font color="000000">(</font><font color="ca9279">&quot;logtest&quot;</font><font color="000000">);</font></li>
+							</ul>
+						</font></div>
+						<p>在这里 logtest就是该日志的标头 标头加上创建时间便是日志的文件名<br>
+						如果我们在2022年12月11日15:25:30时创建了这个日志文件 那么日志文件的文件名便是:</p>
+						<pre><code>logtest_20221211.15.25.30.log</code></pre>
+						<p>直到关闭该日志文件前 所有的日志都会被记录在该文件中<br>
+						而一旦日志文件被关闭 renalog库就无法再往其中写入日志 需要重新按上面的步骤创建新日志文件</p>
+					</section>
+
+					<section>
+						<header>
+							<h4>3.3 记录日志</h4>
+						</header>
+						<p>本节将介绍如何使用renalog来记录日志<br>
+						renalog主要使用log成员函数来记录不同类型的日志内容 他的函数定义如下:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="cc3300">void</font>&nbsp;<font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font><font color="cc0000">::</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font>&nbsp;<font color="0066cc">__lt</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&nbsp;<font color="0066cc">__from</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&nbsp;<font color="0066cc">__info</font><font color="000000">);</font></li>
+							</ul>
+						</font></div>
+						<p>由此可见 renalog在记录日志时需要提供三个参数: 日志的类型 日志的来源和日志的内容<br>
+						<br>
+						renalog支持三种日志类型: <code>INFO</code> <code>WARNING</code>和<code>ERROR</code> 分别代表普通信息 警告和错误<br>
+						不同于某些日志库 renalog只提供日志的记录功能 并不会干预程序其他部分的运行 也就意味着即使renalog收到了一条错误日志 也只会记录该日志 而不会执行像停止程序等等的其他指令<br>
+						<br>
+						日志来源则是用来标明该条日志是在哪一个位置被记录的 应为一个不含冒号的字符串 (冒号会被自动替换为空格)<br>
+						renalog允许在一个日志文件内出现多个不同的日志来源</p>
+					</section>
+
+					<section>
+						<header>
+							<h4>3.4 关闭日志文件</h4>
+						</header>
+						<p>若无需继续记录日志 或者要重新创建一个新的日志文件 则需要用到close成员函数</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">close</font><font color="000000">();</font></li>
+							</ul>
+						</font></div>
+						<p>这样 renalog将会关闭当前的日志流并清空所有缓存 继续记录日志将需要重新创建<br>
+						另外: 目前renalog不支持在初始化后更改日志保存路径 这个限制可能会在后续版本中被移除</p>
+					</section>					
+					
 				</section>
 
             </div>
