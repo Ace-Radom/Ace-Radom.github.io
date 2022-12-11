@@ -12,16 +12,18 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="#" class="image avatar"><img src="../images/avatar.jpg" alt="" /></a>
+					<a href="../index.html" class="image avatar"><img src="../images/avatar.jpg" alt="" /></a>
 					<h1><strong>Ace_Radom here</strong><br>
 					骐骥一跃 不能十步<br>
 					驽马十驾 功在不舍</h1>
 				</div>
 			</header>
 
+		<!-- Main Text -->
+
             <div id="main">
 
-                <section id="one">
+                <section id="Introduction">
                     <header class="major">
                         <h2>Renalog日志库简介及使用说明</h2>
                     </header>
@@ -31,20 +33,129 @@
                         <h3>目录:</h3>
                     </header>
                     <ol>
-                        <li>renalog库的编译</li>
-                        <li>引入库头文件</li>
-                        <li>renalog的基础使用</li>
+                        <li><a href="#Compilation">renalog库的编译</a></li>
+                        <li><a href="#Header_include">引入库头文件</a></li>
+                        <li><a href="#Standard_usage">renalog的基础使用</a></li>
                         <li>renalog_reader日志分析库的使用</li>
                         <li>函数及返回值列表</li>
                     </ol>
                 </section>
+
+				<section id="Compilation">
+					<header class="major">
+						<h3>1. renalog库的编译</h3>
+					</header>
+					<p>renalog库使用CMake进行代码管理 编译时建议使用CMake自带的GUI</p>
+					<div align="center">
+						<article class="col-6 col-12-xsmall work-item">
+							<a href="../images/fulls/renalog_introduction_tutorial/CMake_GUI_Options.png" class="image fit thumb"><img src="../images/thumbs/renalog_introduction_tutorial/CMake_GUI_Options.png" alt="" /></a>
+							<h3>CMake GUI在第一次Configure后的编译选项</h3>
+						</article>
+					</div>
+					<p>如上图所示 renalog库共有四个编译选项:</p>
+					<div class="table-wrapper">
+						<table class="alt">
+							<thead>
+								<tr>
+									<th>编译选项</th>
+									<th>作用</th>
+									<th>默认值</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>BUILD_RELEASE</td>
+									<td>编译Release版库 关闭则编译Debug版库</td>
+									<td><code>ON</code></td>
+								</tr>
+								<tr>
+									<td>BUILD_SHARED</td>
+									<td>编译动态库</td>
+									<td><code>ON</code></td>
+								</tr>
+								<tr>
+									<td>BUILD_STATIC</td>
+									<td>编译静态库</td>
+									<td><code>ON</code></td>
+								</tr>
+								<tr>
+									<td>BUILD_LOGREADER_FUNCTION</td>
+									<td>编译renalog的日志读取库</td>
+									<td><code>ON</code></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p>调整完编译选项后 再次执行Configure 直到没有红色报错后执行Generate<br>
+					随后进入编译文件夹 在该文件夹下打开终端依次执行 (此处以MinGW为例):</p>
+					<pre><code>mingw32-make<br>mingw32-make install</code></pre>
+					<p>若一切正常 终端界面应该如图所示:</p>
+					<div align="center">
+						<article class="col-6 col-12-xsmall work-item">
+							<a href="../images/fulls/renalog_introduction_tutorial/Make_and_Install.png" class="image fit thumb"><img src="../images/thumbs/renalog_introduction_tutorial/Make_and_Install.png" alt="" /></a>
+							<h3>正常的完整make流程</h3>
+						</article>
+					</div>
+					<p>请务必注意: 若没有更改默认安装位置 install命令需要终端拥有管理员权限 否则会出现权限不足报错<br>
+					此时只需重新打开一个拥有管理员权限的终端并重新执行install即可<br><br>
+					然后前往安装位置 应该能看到一个名叫renalog的文件夹 内有bin include lib三个子文件夹<br>
+					在他们其中依次是renalog的动态链接库 头文件和静态链接库<br>
+					随后将该文件夹拷出 使用时只需按需链接动态或静态库即可</p>
+				</section>
+
+				<section id="Header_include">
+					<header class="major">
+						<h3>2. 引入库头文件</h3>
+					</header>
+					<p>当编译了renalog的日志读取库 在安装库文件时会一同安装renalog.h头文件 在其中包含了其余需要引用的头文件<br>
+					因此 如果编译了日志读取库 使用时只需在程序内加上</p>
+					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+						<ul style="list-style: none;">
+							<li><font color="96cbfe">#include&quot;renalog/renalog.h&quot;</font></li>
+						</ul>
+					</font></div>
+					<p>但如果没有编译日志读取库 则不会安装renalog.h头文件 使用时就需要如此引入头文件:</p>
+					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+						<ul style="list-style: none;">
+							<li><font color="96cbfe">#include&quot;renalog/renalog_core.h&quot;</font></li>
+						</ul>
+					</font></div>
+					<p>当然 直接引用需要的模块的头文件也是可以的 比如:</p>
+					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+						<ul style="list-style: none;">
+							<li><font color="96cbfe">#include&quot;renalog/renalog_core.h&quot;</font></li>
+							<li><font color="009900">//引入renalog日志库主体 (日志创建库)</font></li>
+							<li><br></li>
+							<li><font color="96cbfe">#include&quot;renalog/renalog_read.h&quot;</font></li>
+							<li><font color="009900">//引入renalog日志读取库</font></li>
+						</ol>
+					</font></div>
+					<p>一般来说在使用renalog库时按需引用头文件即可</p>
+				</section>
+
+				<section id="Standard_usage">
+					<header class="major">
+						<h3>3. renalog的基础使用</h3>
+					</header>
+					<p>renalog库被封装在命名空间rena下<br>
+					要实现基础的日志创建功能 应使用rena命名空间下的renalog类 比如:</p>
+					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+						<ul style="list-style: none;">
+							<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&nbsp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">)</font><font color="000000">;</font></li>
+						</ul>
+					</font></div>
+					<p>这样会在程序内创建一个名为rl的对象 之后所有的日志创建 日志记录等等的功能皆需要在该对象下实现<br>
+					同时 也需要在创建renalog对象时使用类构析函数 指定日志的保存路径 (日志保存路径可为绝对路径也可为相对路径)<br>
+					在创建rl对象的同时 renalog会自动定位到给到的日志保存路径 并检查该路径是否存在<br>
+					若不存在 renalog会自动创建该路径 如果他有创建该路径的权限</p>
+				</section>
 
             </div>
 
         <!-- Footer -->
 			<footer id="footer">
 				<ul class="copyright">
-					<li><a href="../index.html">返回主页</a></li>
+					<li><a href="../index.html">Homepage</a></li>
 				</ul>
 				<div class="inner">
 					<ul class="icons">
