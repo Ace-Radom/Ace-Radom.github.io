@@ -36,7 +36,7 @@
                         <li><a href="#Compilation">renalog库的编译</a></li>
                         <li><a href="#Header_include">引入库头文件</a></li>
                         <li><a href="#Standard_usage">renalog的基础使用</a></li>
-                        <li>renalog_reader日志分析库的使用</li>
+                        <li><a href="#Reader_usage">renalog_reader日志分析库的使用</a></li>
                         <li>函数及返回值列表</li>
                     </ol>
                 </section>
@@ -80,7 +80,7 @@
 								</tr>
 								<tr>
 									<td>BUILD_LOGREADER_FUNCTION</td>
-									<td>编译renalog的日志读取库</td>
+									<td>编译renalog_reader日志分析库</td>
 									<td><code>ON</code></td>
 								</tr>
 							</tbody>
@@ -107,14 +107,15 @@
 					<header class="major">
 						<h3>2. 引入库头文件</h3>
 					</header>
-					<p>当编译了renalog的日志读取库 在安装库文件时会一同安装renalog.h头文件 在其中包含了其余需要引用的头文件<br>
-					因此 如果编译了日志读取库 使用时只需在程序内加上</p>
+					<p>首先需要添加通过安装得到的include文件夹作为头文件目录<br>
+					当编译了renalog的日志分析库 在安装库文件时会一同安装renalog.h头文件 在其中包含了其余需要引用的头文件<br>
+					因此 如果编译了日志分析库 使用时只需在程序内加上</p>
 					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
 						<ul style="list-style: none;">
 							<li><font color="96cbfe">#include&quot;renalog/renalog.h&quot;</font></li>
 						</ul>
 					</font></div>
-					<p>但如果没有编译日志读取库 则不会安装renalog.h头文件 使用时就需要如此引入头文件:</p>
+					<p>但如果没有编译日志分析库 则不会安装renalog.h头文件 使用时就需要如此引入头文件:</p>
 					<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
 						<ul style="list-style: none;">
 							<li><font color="96cbfe">#include&quot;renalog/renalog_core.h&quot;</font></li>
@@ -127,7 +128,7 @@
 							<li><font color="009900">//引入renalog日志库主体 (日志创建库)</font></li>
 							<li><br></li>
 							<li><font color="96cbfe">#include&quot;renalog/renalog_read.h&quot;</font></li>
-							<li><font color="009900">//引入renalog日志读取库</font></li>
+							<li><font color="009900">//引入renalog_reader日志分析库</font></li>
 						</ol>
 					</font></div>
 					<p>一般来说在使用renalog库时按需引用头文件即可</p>
@@ -146,7 +147,7 @@
 						<p>要实现基础的日志创建功能 应使用rena命名空间下的renalog类 比如:</p>
 						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
 							<ul style="list-style: none;">
-								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&nbsp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">);</font></li>
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&ensp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">);</font></li>
 							</ul>
 						</font></div>
 						<p>这样会在程序内创建一个名为rl的对象 之后所有的日志创建 日志记录等等的功能皆需要在该对象下实现<br>
@@ -180,16 +181,52 @@
 						renalog主要使用log成员函数来记录不同类型的日志内容 他的函数定义如下:</p>
 						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
 							<ul style="list-style: none;">
-								<li><font color="cc3300">void</font>&nbsp;<font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font><font color="cc0000">::</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font>&nbsp;<font color="0066cc">__lt</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&nbsp;<font color="0066cc">__from</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&nbsp;<font color="0066cc">__info</font><font color="000000">);</font></li>
+								<li><font color="cc3300">void</font>&ensp;<font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font><font color="cc0000">::</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font>&ensp;<font color="0066cc">__lt</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&ensp;<font color="0066cc">__from</font><font color="000000">,</font><font color="f0b4a8">std</font><font color="cc0000">::</font><font color="d8a8f0">string</font>&ensp;<font color="0066cc">__info</font><font color="000000">);</font></li>
 							</ul>
 						</font></div>
-						<p>由此可见 renalog在记录日志时需要提供三个参数: 日志的类型 日志的来源和日志的内容<br>
+						<p>由此可见 renalog在记录日志时需要提供三个参数: 日志类型 日志来源和日志内容<br>
 						<br>
 						renalog支持三种日志类型: <code>INFO</code> <code>WARNING</code>和<code>ERROR</code> 分别代表普通信息 警告和错误<br>
 						不同于某些日志库 renalog只提供日志的记录功能 并不会干预程序其他部分的运行 也就意味着即使renalog收到了一条错误日志 也只会记录该日志 而不会执行像停止程序等等的其他指令<br>
+						renalog提供了lt枚举类型 用作日志类型的标识符 一同封装在命名空间rena下<br>
+						在填写日志类型时可以使用:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">INFO</font></li>
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">WARNING</font></li>
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">ERROR</font></li>
+							</ul>
+						</font></div>
+						<p>日志来源则是用来标明该条日志是在哪一个位置被记录的 应为一个不含冒号的字符串 (冒号会被自动替换为空格)<br>
+						renalog允许在一个日志文件内出现多个不同的日志来源<br>
 						<br>
-						日志来源则是用来标明该条日志是在哪一个位置被记录的 应为一个不含冒号的字符串 (冒号会被自动替换为空格)<br>
-						renalog允许在一个日志文件内出现多个不同的日志来源</p>
+						同时日志内容应为一个没有换行符的字符串 若在内容内换行则会在读取日志时产生读取不全的错误<br>
+						<br>
+						这段程序段展示了一个创建日志的实例:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">INFO</font><font color="000000">,</font><font color="ca9279">&quot;test_function&quot;</font><font color="000000">,</font><font color="ca9279">&quot;Hello World!&quot;</font><font color="000000">);</font></li>
+							</ul>
+						</font></div>
+						<p>在执行这段语句后 便会在日志文件中如下记录:</p>
+						<pre><code>[INFO    2022.12.12 09:39:24.542482]test_function: Hello World!</code></pre>
+						<p>易见renalog的日志记录从前往后依次为日志类型 日志记录时间 日志来源和日志内容<br>
+						日志记录的内容不应该被人为更改 否则在使用renalog的日志分析库时可能会发生错误<br>
+						<br>
+						同时 renalog也支持在日志中加入换行和注释 以方便直接打开日志文件进行分析<br>
+						以下是一些实例:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">wrap</font><font color="000000">();</font></li>
+								<li><font color="009900">//在日志文件中插入换行</font></li>
+								<li><br></li>
+								<li><font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">comment</font><font color="000000">(</font><font color="ca9279">&quot;Begin test function&quot;</font><font color="000000">);</font></li>
+								<li><font color="009900">//在日志文件中插入注释</font></li>
+							</ul>
+						</font></div>
+						<p>其中在插入注释后 会在日志文件中记录以下内容:</p>
+						<pre><code># Begin test function</code></pre>
+						<p>注释内容不会被日志分析库解析</p>
 					</section>
 
 					<section>
@@ -204,8 +241,98 @@
 						</font></div>
 						<p>这样 renalog将会关闭当前的日志流并清空所有缓存 继续记录日志将需要重新创建<br>
 						另外: 目前renalog不支持在初始化后更改日志保存路径 这个限制可能会在后续版本中被移除</p>
-					</section>					
+					</section>
 					
+					<section>
+						<header>
+							<h4>3.5 完整使用实例</h4>
+						</header>
+						<p>本节将介绍一个renalog库基础使用的实例</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="009900">//renalog basic function test</font></li>
+								<li><font color="96cbfe">#include&quot;renalog/renalog.h&quot;</font></li>
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalog</font>&ensp;<font color="6299d5">rl</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">);</font></li>
+								<li><font color="cc3300">int</font>&ensp;<font color="ff9900">main</font><font color="000000">(){</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">open</font><font color="000000">(</font><font color="ca9279">&quot;logtest&quot;</font><font color="000000">);</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">comment</font><font color="000000">(</font><font color="ca9279">&quot;Begin test function&quot;</font><font color="000000">);</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">wrap</font><font color="000000">();</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">INFO</font><font color="000000">,</font><font color="ca9279">&quot;test_function&quot;</font><font color="000000">,</font><font color="ca9279">&quot;This is an Info&quot;</font><font color="000000">);</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">WARNING</font><font color="000000">,</font><font color="ca9279">&quot;test_function&quot;</font><font color="000000">,</font><font color="ca9279">&quot;This is a Warning&quot;</font><font color="000000">);</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">log</font><font color="000000">(</font><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="cc3300">lt</font><font color="cc0000">::</font><font color="6299d5">ERROR</font><font color="000000">,</font><font color="ca9279">&quot;test_function&quot;</font><font color="000000">,</font><font color="ca9279">&quot;This is an Error&quot;</font><font color="000000">);</font></li>
+								<li>&nbsp;&nbsp;<font color="6299d5">rl</font><font color="cc0000">.</font><font color="ff9900">close</font><font color="000000">();</font></li>
+								<li>&nbsp;&nbsp;<font color="cc3300">return</font>&ensp;<font color="198758">0</font><font color="000000">;</font></li>
+								<li><font color="000000">}</font></li>
+							</ul>
+						</font></div>
+						<p>在执行该代码后 在exe同目录下应出现一个名为log的子目录 其中包含一个日志文件<br>
+						因为我是在2022年12月12日11时50分33秒执行的程序 那么该日志文件的文件名就应该为:</p>
+						<pre><code>logtest_20221212.11.50.33.log</code></pre>
+						<p>该日志文件的内容应为:</p>
+						<pre><code># Begin test function<br><br>[INFO    2022.12.12 11:50:33.015556]test_function: This is an Info<br>[WARNING 2022.12.12 11:50:33.015556]test_function: This is a Warning<br>[ERROR   2022.12.12 11:50:33.015556]test_function: This is an Error</code></pre>
+					</section>
+				</section>
+
+				<section id="Reader_usage">
+					<header class="major">
+						<h3>4. renalog_reader日志分析库的使用</h3>
+					</header>
+					<p>本章将介绍renalog_reader日志分析库的使用方法<br>
+					使用本章内容时 请确保在编译renalog库时勾选了编译renalog_reader日志分析库选项 否则本章内容是不可用的<br>
+					具体见本文第一章 <a href="#Compilation">renalog库的编译</a></p>
+
+					<section>
+						<header>
+							<h4>4.1 初始化renalog_reader类</h4>
+						</header>
+						<p>初始化renalog_reader类的方式和初始化renalog类十分类似:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="f0b4a8">rena</font><font color="cc0000">::</font><font color="d8a8f0">renalogreader</font>&ensp;<font color="6299d5">rlr</font><font color="000000">(</font><font color="ca9279">&quot;log&quot;</font><font color="000000">);</font></li>
+							</ul>
+						</font></div>
+						<p>初始化renalog_reader类时同样需要指定日志保存路径 绝对相对路径皆可<br>
+						而不同于renalog类的是 初始化renalog_reader类时要求该日志保存路径必须存在 否则将抛出错误 例如:</p>
+						<pre><code>[renalog runtime] ERROR -> renalogreader class constructor: log file folder "log" doesn't exist</code></pre>
+						<p>这行报错代表着: 没有找到日志保存路径&quot;log&quot;</p>
+					</section>
+
+					<section>
+						<header>
+							<h4>4.2 打开日志文件</h4>
+						</header>
+						<p>renalog_reader日志分析库一样使用open成员函数打开日志文件<br>
+						在打开日志文件时 需要指明日志的标头和日志的创建时间<br>
+						比如: 在日志文件夹内有一日志文件 其文件名为:</p>
+						<pre><code>logtest_20221215.12.05.30.log</code></pre>
+						<p>那么为了打开该日志文件 则有两种不同的方法:</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rlr</font><font color="cc0000">.</font><font color="ff9900">open</font><font color="000000">(</font><font color="ca9279">&quot;logtest&quot;</font><font color="000000">,</font><font color="ca9279">&quot;20221215.12.05.30&quot;</font><font color="000000">);</font></li>
+								<li><font color="009900">//直接以字符串形式指定日志创建时间</font></li>
+								<li><br></li>
+								<li><font color="6299d5">rlr</font><font color="cc0000">.</font><font color="ff9900">open</font><font color="000000">(</font><font color="ca9279">&quot;logtest&quot;</font><font color="000000">,</font><font color="198758">2022</font><font color="000000">,</font><font color="198758">12</font><font color="000000">,</font><font color="198758">15</font><font color="000000">,</font><font color="198758">12</font><font color="000000">,</font><font color="198758">5</font><font color="000000">,</font><font color="198758">30</font><font color="000000">);</font></li>
+								<li><font color="009900">//按照年月日时分秒的顺序依次指定日志创建时间</font></li>
+							</ul>
+						</font></div>
+						<p>这两种方法没有本质上的区别 按照习惯或场景选用即可</p>
+					</section>
+
+					<section>
+						<header>
+							<h4>4.3 解析打开的日志文件</h4>
+						</header>
+						<p>renalog_reader日志分析库不会自动解析打开的日志文件 日志的解析需要使用parse成员函数手动启动</p>
+						<div style="background-color:#f6f8fa;color:#444;"><font face="monospace">
+							<ul style="list-style: none;">
+								<li><font color="6299d5">rlr</font><font color="cc0000">.</font><font color="ff9900">parse</font><font color="000000">();</font></li>
+							</ul>
+						</font></div>
+						<p>完成解析后便可以获取日志内的内容<br>
+						请注意: renalog_reader日志分析库被设计为只为renalog库服务 没有考虑任何日志被手动更改或传入不符合renalog库日志格式的日志文件的情况<br>
+						这意味着: 使用renalog_reader日志分析库解析被手动更改或不是由renalog库创建的日志文件 导致被解析的日志文件的格式和renalog库日志格式不同从而造成解析出错时 renalog_reader不会主动抛出任何错误或异常<br>
+						因此请避免手动更改日志文件内容 以规避不必要的错误</p>
+					</section>
 				</section>
 
             </div>
