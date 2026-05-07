@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>基于 OpenVPN 的校园网穿透 Ace_Radom's Blog</title>
+        <meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../assets/css/main.css" />
+    </head>
+    <body class="is-preload">
+
+        <!-- Header -->
+        <header id="header">
+            <div class="inner">
+                <a href="../index.html" class="image avatar"><img src="../images/avatar.jpg" alt="" /></a>
+                <h1><strong>Ace_Radom here</strong><br>
+                骐骥一跃 不能十步<br>
+                驽马十驾 功在不舍</h1>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <div id="main">
+
+            <section id="Introduction">
+                <header class="major">
+                    <h2>基于 OpenVPN 的校园网穿透</h2>
+                </header>
+                <p>在许多校园网环境中，或多或少都会遇到类似于“游戏端口被封”、“校园网内部 DNS 污染”等问题。<br>
+                笔者所在的学校算是一个较为极端的例子：根据扫描结果，无论 TCP 还是 UDP 协议端口号超过1024的端口如非必要几乎都被屏蔽。
+                同时在校园网关进行的 DNS 污染严重到甚至让 GitHub 都无法正常打开。在这种情况下，“翻墙”就是几乎唯一的选择。<br>
+                本文将详细记述笔者使用的校园网穿透配置，并且适当探讨部分设置的利弊。</p>
+
+                <p><b><i>请注意：笔者的网络环境位于国外，故本文所有内容不考虑 GFW 封锁问题。</i></b></p>
+                <header>
+                    <h3>目录:</h3>
+                </header>
+                <ol>
+                    <li><a href="#VPN_Choice">VPN 套件选择</a></li>
+                    <li><a href="#Install">安装 OpenVPN</a></li>
+                    <li><a href="#Client_Import">在客户端中导入 Profile</a></li>
+                    <li><a href="#Mgmt">笔者自建的管理界面</a></li>
+                    <li><a href="#Self_DNS">可选：基于 Dnsmasq 的域名屏蔽</a></li>
+                    <li><a href="#Block_Bypass">可选：通过多服务器架构绕过网站屏蔽</a></li>
+                </ol>
+            </section>
+
+            <section id="VPN_Choice">
+                <header class="major">
+                    <h3>1. VPN 套件选择</h3>
+                </header>
+                <p>目前主流的VPN套件和协议有很多种：从穿透 GFW 常用的 V2Ray 和 Shadowsocks，到 WireGuard，以及笔者最后选择的 OpenVPN。<br>
+                应该说，不同的选择有不同的好处。笔者自己也有搭建基于 V2Ray+VMess/VLess 的自用 VPN，但这种技术栈在不同种类的终端上使用的客户端并不统一，
+                并且对“小白”用户来说界面并不友好（因为笔者的校园网穿透同时也提供给别的同学使用，因此也需要考量易用性）；
+                而 WireGuard 的劣势相信对该协议有所了解的读者都不难想到，即其完全依赖 UDP 传输，在部分网络受限环境下可能无法使用。</p>
+
+                <p>那么笔者最后选择 OpenVPN 的原因也就显而易见了：并不算复杂的配置，完全基于虚拟网卡（不用像 V2Ray 一样额外配置 TUN），
+                可以自行选择传输层协议和端口，有现成的、成熟的管理脚本和多端统一、由官方维护的简易客户端，几乎完美契合了笔者的需求。
+                即便带来了相对大的服务端 CPU 开销，但这些负载对现代 VPS 来说一般不成问题。<br>
+                当然，选择 OpenVPN 的前提是校园网内没有部署深度包检测（DPI），因为其流量特征过于明显，在 DPI 技术面前几乎等于自杀。在这种情况下，
+                建议换用如 V2Ray 等基于流量伪装设计的技术栈，本文对此不作赘述。</p>
+            </section>
+
+            <section id="Install">
+                <header class="major">
+                    <h3>2. 安装 OpenVPN</h3>
+                </header>
+                <p>笔者选用了 GitHub 上的 <a href="https://github.com/Nyr/openvpn-install">Nyr/openvpn-install</a> 项目进行安装和后期的管理。</p>
+
+                <p>在终端中运行以下命令安装：</p>
+
+                <pre><code>wget https://git.io/vpn -O openvpn-install.sh && bash openvpn-install.sh</code></pre>
+                
+                <p>随后依次选择使用的 IP，协议，端口（此处按照笔者需求选择 TCP 协议和 443 端口）：</p>
+                <div align="center">
+                    <article class="col-6 col-12-xsmall work-item">
+                        <a href="../images/fulls/OpenVPN/OpenVPN_Install.png" class="image fit thumb"><img src="../images/thumbs/OpenVPN/OpenVPN_Install.png" alt="" /></a>
+                        <h3>选择使用的 IP，协议，端口</h3>
+                    </article>
+                </div>
+
+                <p>再然后就是相对重要的一点：选择 DNS 服务。<br>
+                为了彻底避免校园网内 DNS 污染，我们需要在服务器配置中加上 <code>push "block-outside-dns"</code> 强制客户端使用指定的 DNS（安装脚本已经自动加上了该项配置）。
+                但这也意味着我们必须手动选择一个合适的 DNS 服务。<br>
+                笔者一般建议选择谷歌或是 Cloudflare 的 DNS，但也可以结合 Dnsmasq 进行高阶配置（见 <a href="#Self_DNS">5. 可选：基于 Dnsmasq 的域名屏蔽</a>）。</p>
+                <div align="center">
+                    <article class="col-6 col-12-xsmall work-item">
+                        <a href="../images/fulls/OpenVPN/OpenVPN_Install_DNS.png" class="image fit thumb"><img src="../images/thumbs/OpenVPN/OpenVPN_Install_DNS.png" alt="" /></a>
+                        <h3>选择 DNS 服务</h3>
+                    </article>
+                </div>
+
+                <p>再随后只需要给第一个 Client 取一个名字，便会自动进行安装。<br>
+                完成安装后，再次运行 <code>openvpn-install.sh</code> 脚本便可进行 Client 管理和卸载 OpenVPN，对此本文不再赘述。</p>
+            </section>
+
+            <section id="Client_Import">
+                <header class="major">
+                    <h3>3. 在客户端中导入 Profile</h3>
+                </header>
+                <p>不像别的技术栈，由 OpenVPN 官方维护的客户端 OpenVPN Connect 可以说在使用上傻瓜到了极致。
+                用户只需要将服务器上的 Profile（<code>.ovpn</code> 文件）下载下来，并且在 OpenVPN Connect 中导入便可连接服务器，
+                几乎不会有犯错的地方。<br>
+                在完成导入后，只要能够正常看到绿色的 Connected 字样，便代表已经连接成功。此时电脑的所有流量都会经由 OpenVPN 代理。<br>
+                这也是笔者选择 OpenVPN 的一大原因：极简的客户端大大降低了“小白”的学习成本，让笔者几乎不用在别的用户（同学）的设备上操作。
+                在导入 Profile 后，所有的问题基本上都不用再在客户端更改设置，若真的需要也一般都是直接删除服务器重新导入配置。</p>
+            </section>
+
+            <section id="Mgmt">
+                <header class="major">
+                    <h3>4. 笔者自建的管理界面</h3>
+                </header>
+                <p>为了更方便地管理 OpenVPN 服务，笔者自己编写了一套运行在 CLI 下的管理界面。<br>
+                    但由于代码写得实在太糙了，为了快速上线没有严谨设计导致满是屎山，又在“能跑就别动”的指导方针下放弃了重构计划，所以在此处便不作深入探讨。<br>
+                    读者若感兴趣可以查看在 GitHub 上的 <a href="https://github.com/Ace-Radom/openvpn-mgmt">Ace-Radom/openvpn-mgmt</a> 和
+                    <a href="https://github.com/Ace-Radom/openvpn-mgmt-web">Ace-Radom/openvpn-mgmt-web</a> 两个仓库，
+                    分别是服务器管理界面和 Profile 申请/管理的网站。<s>真的很糙，建议别看代码。</s><br>
+                    本节仅略谈部分在管理界面中用到的 OpenVPN 功能。</p>
+        
+                    <h4>4.1. OpenVPN Management Interface</h4>
+        
+                    <p>注意这个管理界面和笔者编写的管理界面不同，是 OpenVPN 的内置功能。为了开启这个功能，需要在服务器配置文件中加上：</p>
+        
+                    <pre><code>management 127.0.0.1 5555 mgmt_pswd.txt</code></pre>
+        
+                    <p>其中 <code>5555</code> 是管理界面监听的端口号，<code>mgmt_pswd.txt</code> 则是和服务器配置文件放于同一目录下的用于存放管理界面密码的文本文件。</p>
+        
+                    <p>这个管理界面功能相当强大，笔者自己的管理界面中许多功能也基于该 Interface 实现，例如：</p>
+        
+                    <ol>
+                        <li>实时状态监控（<code>status</code>）</li>
+                        <li>强制断线（<code>kill</code>）</li>
+                    </ol>
+        
+                    <p>当然这些远远不是其所有的功能，读者可以自行查阅<a href="https://openvpn.net/community-docs/management-interface.html">社区文档</a>。</p>
+        
+                    <h4>4.2. OpenVPN Server-Side Script</h4>
+        
+                    <p>虽然在 Management Interface 内也可以做到身份验证的功能，但比起直接挂载服务端脚本来说复杂度过高。为此笔者编写了一套脚本，
+                    用于在服务启动/关闭时轮转日志，并在用户连接时进行身份验证、在断开时记录网络使用量以方便审计。</p>
+        
+                    <pre><code>script-security 2
+up script/up.sh
+down script/down.sh
+client-connect script/client_connect.sh
+client-disconnect script/client_disconnect.sh</code></pre>
+        
+                    <p>其中 <code>client-connect</code> 脚本通过返回值验证授权：若返回值为 0 则认定通过，否则则不通过。
+                    这个功能与前文提到的强制断线功能结合使用，便可以做到类似于屏蔽恶意用户的功能，或是在服务器维护中阻止所有用户连接。<br>
+                    其余脚本在笔者的用例中均只有简单的日志记录功能，在此不做过多讨论。</p>
+            </section>
+
+            <section id="Self_DNS">
+                <header class="major">
+                    <h3>5. 可选：基于 Dnsmasq 的域名屏蔽</h3>
+                </header>
+                <p>有些时候，我们不希望让电脑上的程序去访问某些 URL。通常我们通过更改系统 <code>hosts</code> 文件将域名解析到本地来实现这个功能，
+                但 <code>hosts</code> 文件在功能上有诸多限制（例如不支持通配符），且作为系统文件修改需要管理员权限，也进一步降低了易用性。<br>
+                前文提到，我们可以在安装 OpenVPN 服务时选择使用自建 DNS 服务。在这里我们在同一台服务器上安装 Dnsmasq，因为它极其轻量且易于配置。</p>
+
+                <p>我们先配置 Dnsmasq 并启动 DNS 服务：</p>
+
+                <pre><code># Dnsmasq Configure
+listen-address=127.0.0.1,10.8.0.1
+bind-interfaces
+no-resolv</code></pre>
+
+                <p>在 DNS 服务启动后，我们便可以在 OpenVPN 安装中选择使用自建 DNS 服务器，并将 DNS 服务器的 IP 设为 <code>10.8.0.1</code>。</p>
+                <div align="center">
+                    <article class="col-6 col-12-xsmall work-item">
+                        <a href="../images/fulls/OpenVPN/OpenVPN_Install_DNS_Custom.png" class="image fit thumb"><img src="../images/thumbs/OpenVPN/OpenVPN_Install_DNS_Custom.png" alt="" /></a>
+                        <h3>使用自建 DNS 服务器</h3>
+                    </article>
+                </div>
+
+                <p>随后在 Dnsmasq 配置中定义上游 DNS：</p>
+
+                <pre><code>server=1.1.1.1
+server=1.0.0.1
+server=8.8.8.8
+server=8.8.4.4</code></pre>
+
+                <p>完成这些步骤并重启 Dnsmasq 服务后，若在客户端上可以正常解析域名，则代表配置正确。<br>
+                我们可以按照以下方式添加配置以屏蔽部分域名：</p>
+
+                <pre><code>address=/block.site/127.0.0.1</code></pre>
+
+                <p>需要注意的是：即便我们在这里没有使用通配符，所有挂载在 <code>block.site</code> 下的次级域名一样会被解析到本地。
+                这是由 Dnsmasq 的设计决定的：由于其仅支持泛解析而没有实现精确匹配，想要简单地做到类似于“仅屏蔽某个二级域名，却不屏蔽其下的三级域名”的功能是不可能的。<br>
+                在某些场合这可能是一种限制，但更多的时候这就是我们想要的功能。而在什么情况下会需要这种大范围屏蔽某一域名及其下所有次级域名呢？
+                此处不便细说，请读者自行联想。</p>
+            </section>
+
+            <section id="Block_Bypass">
+                <header class="major">
+                    <h3>6. 可选：通过多服务器架构绕过网站屏蔽</h3>
+                </header>
+                <p>如今许多网站会依赖由如 Cloudflare 等公司提供的安全保护服务，其中一种惯用策略便是按 IP 段或地理位置等信息屏蔽某些访问请求。
+                不巧的是，由于我们的 OpenVPN 服务器大多部署在 VPS 上，且这些一般配置的 VPS 也常被网络爬虫/扫描服务租用。
+                因此，我们的 VPS 所在的 IP 段被网站错误屏蔽并非很罕见的情况。而由于我们的所有流量都会被 OpenVPN 代理，
+                所以一旦在我们的设备上连接了 OpenVPN 服务器，我们就无法打开这些本来可以打开的网页了。</p>
+
+                <p>解决这个问题的简单方法也十分纯粹：将这些被屏蔽的流量分离出来，由另外的一台没有被网站屏蔽的服务器转发。
+                由于我们已经安装了 Dnsmasq 并与 OpenVPN 配套使用，所以实现这个功能并不困难。</p>
+
+                <p>假定目前有两台服务器：</p>
+
+                <ul>
+                    <li>代理服务器 A：安装了 OpenVPN 和 Dnsmasq，但被网站错误屏蔽。</li>
+                    <li>转发服务器 B：没有被网站屏蔽。</li>
+                </ul>
+
+                <p>我们首先在服务器 A 上创建一个 IP Set，用于存储所有需要被转发到服务器 B 上的 IP。</p>
+
+                <pre><code>ipset --create proxy_domains hash:ip --timeout 3600</code></pre>
+
+                <p>其中强烈建议加上 <code>--timeout</code> 开关以自动淘汰长时间未被访问的 IP。原因见下文。</p>
+
+                <p>之后我们需要利用 Iptables 设定转发逻辑（可按实际情况调整转发端口，此处使用 8443）：</p>
+
+                <pre><code>iptables -t nat -A PREROUTING -s 10.8.0.0/24 -p tcp --dport 443 -m set --match-set proxy_domains dst -j DNAT --to-destination ${SERVER_B_IP}:8443
+iptables -t nat -A POSTROUTING -d ${SERVER_B_IP} -p tcp --dport 8443 -j MASQUERADE</code></pre>
+
+                <p>然而实验发现，Cloudflare 获取到的仍然是服务器 A 的真实 IP，因而再次触发屏蔽机制。
+                其中主要原因是 Cloudflare 的保护服务已经默认启用了 HTTP/3 协议，而其使用基于 UDP 传输的 QUIC 协议实现。由于我们只拦截了 TCP 流量，
+                所以服务器 A 的真实 IP 依然能被 Cloudflare 获取到。<br>
+                虽然我们也能转发 UDP 流量，但这对服务器 B 上运行的转发服务有要求且配置上更加复杂，最简单的解法是迫使连接退回到 TCP 协议：</p>
+
+                <pre><code>iptables -I FORWARD -s 10.8.0.0/24 -p udp --dport 443 -m set --match-set proxy_domains dst -j REJECT</code></pre>
+
+                <p>完成以上配置后切记执行持久化保存（Debian 系一般使用 ipset-persistent 和 iptables-persistent，并调用
+                <code>netfilter-persistent save</code> 保存所有配置）。</p>
+
+                <p>在 Dnsmasq 的配置中我们只需要加上：</p>
+                
+                <pre><code>ipset=/cf_blocked.site/proxy_domains</code></pre>
+
+                <p>Dnsmasq 会自动将解析出的 IP 加入对应的 IP Set 中，随后所有连接到对应 IP 的流量都会被内核转发到服务器 B。</p>
+
+                <p>而在服务器 B 上，由于其只作流量转发用途，理论上可以使用任何 TCP 流量中转工具（如 sniproxy 和 GOST）。
+                在笔者的环境中，由于服务器 B 上已经运行了 Nginx 并配置了 stream 模块，因此采用了这种看上去有些臃肿的组合。</p>
+
+                <pre><code>stream {
+    resolver 1.1.1.1 8.8.8.8 valid=300s;
+        server {
+            listen 8443;
+            ssl_preread on;
+            proxy_pass $ssl_preread_server_name:443;
+            allow ${SERVER_A_IP};
+            deny all;
+        }
+}</code></pre>
+
+                <p>在 Nginx 配置中切记对转发来源 IP 加以限制。<br>
+                为了方便审计，我们一般还需要加上 Access Log。由于这不是本文的重点，故不做阐述。</p>
+
+                <p>这种转发仅有一个问题：由于我们的底层转发逻辑是按照 IP 匹配的，而那些真的会屏蔽服务器 A 的网站大概率都会使用 Cloudflare 等公司的代理服务。
+                也就是说，我们解析到并加入转发 IP Set 的 IP 实际上大概率是 CDN 的 IP，而非网站真实服务器的 IP。<br>
+                这会造成一个限制：由于所有依赖于这种代理服务的网站都可能被解析到这些 CDN 上，可能会出现在访问完一个被屏蔽的网站后，
+                别的正常网站由于被解析到了相同 CDN IP 因此也被转发到了服务器 B 上。<br>
+                这类误转发在当前架构下，在我的认知范围内是无解的。因为一旦按照域名转发就会极大增加复杂度和性能开销，而这是笔者不期望的。
+                因此笔者建议在创建 IP Set 时引入 Timeout 机制，在规定时间后自动淘汰被解析的 CDN IP，以避免越来越多的网站被错误转发。<br>
+                而 Timeout 的具体值则按服务器 A 与服务器 B 之间的物理距离决定：
+                笔者一般将与代理服务器（服务器 A）处在同一地区的转发服务器（服务器 B）的 Timeout 设为 12 小时（即 43200 秒）。
+                若两者相距很远（如代理服务器在欧洲而转发服务器在香港），则建议设定为一小时甚至更短，以避免误解析造成的延迟激增。</p>
+            </section>
+
+        </div>
+
+        <!-- Footer -->
+        <footer id="footer">
+            <ul class="copyright">
+                <li><a href="../index.html">Homepage</a></li>
+            </ul>
+            <div class="inner">
+                <ul class="icons">
+                    <li><a href="https://twitter.com/Hisaki03492862" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+                    <li><a href="https://github.com/Ace-Radom" class="icon brands fa-github"><span class="label">Github</span></a></li>
+                </ul>
+                <ul class="copyright">
+                    <li>&copy; Ace_Radom</li>
+                    <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                </ul>
+            </div>
+        </footer>
+
+        <!-- Scripts -->
+        <script src="../assets/js/jquery.min.js"></script>
+        <script src="../assets/js/jquery.poptrox.min.js"></script>
+        <script src="../assets/js/browser.min.js"></script>
+        <script src="../assets/js/breakpoints.min.js"></script>
+        <script src="../assets/js/util.js"></script>
+        <script src="../assets/js/main.js"></script>
+
+    </body>
+</html>
