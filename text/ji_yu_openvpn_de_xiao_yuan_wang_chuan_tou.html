@@ -240,6 +240,17 @@ iptables -t nat -A POSTROUTING -d ${SERVER_B_IP} -p tcp --dport 8443 -j MASQUERA
                 <p>而在服务器 B 上，由于其只作流量转发用途，理论上可以使用任何 TCP 流量中转工具（如 sniproxy 和 GOST）。
                 在笔者的环境中，由于服务器 B 上已经运行了 Nginx 并配置了 stream 模块，因此采用了这种看上去有些臃肿的组合。</p>
 
+                <p>首先，我们需要先确定服务器 B 上的 IPv4 转发功能是否启用。</p>
+
+                <pre><code># 检查 IPv4 转发功能是否启用
+sysctl net.ipv4.ip_forward
+
+# 若没有启用 则运行以下命令开启
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
+sysctl -p</code></pre>
+
+                <p>然后便是按照个人选择配置转发服务。这里附上笔者的 Nginx stream 模块配置：</p>
+
                 <pre><code>stream {
     resolver 1.1.1.1 8.8.8.8 valid=300s;
         server {
